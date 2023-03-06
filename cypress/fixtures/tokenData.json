@@ -1,0 +1,7 @@
+{
+    "access_token": "BQBfaWOPMCQdYplTgscVY41GN3BTbU62OKKQfCb_YoeEi0hrIrdfxvZJ7N-60tiKtAj70TE5sMvZPx8jBtm_sDVnbvjGx2PJSg4ozNHYoCCuMHONeU4ab6YuWibGczXqM7XbcWEanhijPTc_JQs-0bqoguGA_tGHjOek4f5GJVQsfwT0cnenazaqZN8m-JwQP7Y0FW-kTFCp0Jj5jHSsr_QpOet0BUsO",
+    "token_type": "Bearer",
+    "scope": "playlist-read-private streaming user-modify-playback-state user-library-read user-read-playback-state user-read-email user-read-private",
+    "expires_in": 3600
+  }
+  

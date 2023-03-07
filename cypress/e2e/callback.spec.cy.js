@@ -1,30 +1,24 @@
+describe('Callback component', () => {
+  it('should display token data after successful fetch', () => {
+    cy.visit('http://localhost:3000/callback?code=wqiiUUm0T0fGaM6NALWew5uMIhhSjPSnyVWVKyeZSv2YdahXCRvDs4mXBxqp2xXo8zSXY2h4z7ioxSOA2TnuJy&grant_type=authorization_code');
+    cy.intercept('POST', 'https://accounts.spotify.com/api/token', {
+      fixture: 'tokenData.json'
+    }).as('getTokenData');
+    cy.get('p').should('contain.text', 'Loading...');
+    cy.wait('@getTokenData').its('request.body').should('contain', {
+      grant_type: 'authorization_code',
+      code: 'AQCmvkqkQuy-wqiiUUm0T0fGaM6NALWew5uMIhhSjPSnyVWVKyeZSv2YdahXCRvDs4mXBxqp2xXo8zSXY2h4z7ioxSOA2TnuJy-LH7yJ8ISpXH5xo6qzBtYaKV-EKH7o6So',
+      redirect_uri: 'http://localhost:3000/callback', 
+      client_id: '6df6b59cb94b4bfbb76803a2092a11ee', 
+      client_secret: 'd4e56a8f3ba0415788089db89d49b931'
+    });
+    cy.get('pre').should('contain.text', 'access_token');
+  });
 
-describe('Callback', () => {
-  it('Retrieves the access token from the hash params', () => {
-    const accessToken = 'fake_access_token'
-    const expiresIn = '3600'
-    const tokenType = 'Bearer'
-    const state = 'fake_state'
-    const hash = `#access_token=${accessToken}&token_type=${tokenType}&expires_in=${expiresIn}&state=${state}`
-    cy.visit(`/callback${hash}`)
-    const params = getHashParams()
-    expect(params.access_token).to.equal(accessToken)
-    expect(params.token_type).to.equal(tokenType)
-    expect(params.expires_in).to.equal(expiresIn)
-    expect(params.state).to.equal(state)
-  })
-
-  it('Displays an error message if token retrieval fails', () => {
-    const code = 'fake_code'
-    const errorMessage = 'Failed to retrieve token'
-    cy.intercept('POST', '/api/token', {
-      statusCode: 500,
-      body: {
-        error: 'server_error',
-        error_description: errorMessage,
-      },
-    })
-    cy.visit(`/callback?code=${code}`)
-    cy.get('[data-cy=error-message]').should('contain', errorMessage)
-  })
-})
+  it('should display error message when error is present in query', () => {
+    cy.visit('http://localhost:3000/callback?error=invalid_grant');
+    cy.get('p').should('not.contain.text', 'Loading...');
+    cy.get('h1').should('contain.text', 'Error');
+    cy.get('p').should('contain.text', 'invalid_grant');
+  });
+});

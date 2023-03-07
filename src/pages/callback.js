@@ -11,8 +11,8 @@ export const useIsLoading = () => {
 
 function Callback({ code, error, tokenData }) {
   const { isLoading, setIsLoading } = useIsLoading(); 
-  const client_id = process.env.CLIENT_ID;
-  const client_secret = process.env.CLIENT_SECRET;
+  const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
+  const client_secret = 'd4e56a8f3ba0415788089db89d49b931';
   const redirect_uri = 'http://localhost:3000/callback';
 
 
@@ -36,7 +36,7 @@ function Callback({ code, error, tokenData }) {
             // refresh_token: 'AQCo3Q7cbaKmzAT560VafFB0RlMtz3GF-VKEyYlKmcZQj0XFtd…dxMWDrazqQKwuzU6b9qOr7Xvw7g2HwDYm9o7RFnlhVNJ0Iljg', 
             code: code,
             redirect_uri: redirect_uri,
-            client_id: client_id,
+            client_id: client_id,   
             client_secret: client_secret
           }),
         });

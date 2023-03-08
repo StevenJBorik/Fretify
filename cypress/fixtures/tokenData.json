@@ -1,12 +1,7 @@
 {
-    "grant_type": "authorization_code",
+    "grant_type": "client_credentials",
+    "code": "AQD3zVL82b0SlI4KNcgqV_Q5ejEMEOITuBFjwRx3AmvPho0sbG2C8gFQeZ3Ni8Hhgw60S9EHwjMP0jAPyNbOnD5EyylGoEmHTOV3wDfVo6hrD_CxaWTDTulE",
     "redirect_uri": "http://localhost:3000/callback",
     "client_id": "6df6b59cb94b4bfbb76803a2092a11ee",
-    "client_secret": "d4e56a8f3ba0415788089db89d49b931",
-    "code": "AQCmvkqkQuy-wqiiUUm0T0fGaM6NALWew5uMIhhSjPSnyVWVKyeZSv2YdahXCRvDs4mXBxqp2xXo8zSXY2h4z7ioxSOA2TnuJy-LH7yJ8ISpXH5xo6qzBtYaKV-EKH7o6So",
-    "access_token": "BQDCG5gTThj8hWCthqq40SnSLmE4TcQmr4lp3vZnigdec0djqiJ9-0qjvk4Qph2u3ML7aaIVtPYfXTNBiJGXcHaQdXWD2dsqNZeHznjA5DdVou3CLoBYAHQQaZVVIQy409r1_1eWWH_KZI452y6Uast5WbTd5Q0bL2TmVRdLA91-TxZRaaUizCY0uedruaZo6qXYrqKqT6PWpxF44Wwp0hWHCLKlt-vQ",
-    "scope": "playlist-read-private streaming user-modify-playback-state user-library-read user-read-playback-state user-read-email user-read-private",
-    "expires_in": 3600,
-    "token_type": "Bearer"
+    "client_secret": "d4e56a8f3ba0415788089db89d49b931"
   }
-  

@@ -1,57 +1,49 @@
 import React from 'react';
 
-// const client_id = process.env.CLIENT_ID;
-// const client_secret = process.env.CLIENT_SECRET;
-// const redirect_uri = 'http://localhost:3000/callback';
-
-export const useIsLoading = () => {
+const Callback = ({ code, error }) => {
+  const [tokenData, setTokenData] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
-  return { isLoading, setIsLoading };
-};
-
-function Callback({ code, error, tokenData }) {
-  const { isLoading, setIsLoading } = useIsLoading(); 
+  
   const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
   const client_secret = 'd4e56a8f3ba0415788089db89d49b931';
   const redirect_uri = 'http://localhost:3000/callback';
-
-
+  
   React.useEffect(() => {
     const getTokenData = async () => {
       if (error) {
         return;
       }
-      
+
       try {
-        const auth = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
         setIsLoading(true);
+        
         const response = await fetch('https://accounts.spotify.com/api/token', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${auth}`,
+            'Authorization': `Basic ${btoa(`${client_id}:${client_secret}`)}`
           },
           body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            // refresh_token: 'AQCo3Q7cbaKmzAT560VafFB0RlMtz3GF-VKEyYlKmcZQj0XFtd…dxMWDrazqQKwuzU6b9qOr7Xvw7g2HwDYm9o7RFnlhVNJ0Iljg', 
-            code: code,
-            redirect_uri: redirect_uri,
-            client_id: client_id,   
-            client_secret: client_secret
-          }),
+            'grant_type': 'client_credentials',
+            'code': code,
+            'redirect_uri': redirect_uri,
+            'client_id': client_id,
+            'client_secret': client_secret
+          })
         });
-        const tokenData = await response.json();
-        setIsLoading(false);
 
-        console.log('tokenData:', tokenData);
-      } catch (error) {
+        const tokenData = await response.json();
+
+        setTokenData(tokenData);
         setIsLoading(false);
+      } catch (error) {
         console.error('Error getting token data:', error.message);
+        setIsLoading(false);
       }
     };
 
     getTokenData();
-  }, [code, error, setIsLoading]);
+  }, [code, error, client_id, client_secret, redirect_uri]);
 
   if (error) {
     return (
@@ -72,7 +64,7 @@ function Callback({ code, error, tokenData }) {
       <pre>{JSON.stringify(tokenData, null, 2)}</pre>
     </div>
   );
-}
+};
 
 Callback.getInitialProps = async ({ query }) => {
   const { code, error } = query;

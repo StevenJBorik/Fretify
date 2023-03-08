@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 
-const client_id = process.env.CLIENT_ID; 
+const client_id = '6df6b59cb94b4bfbb76803a2092a11ee'; 
 const redirect_uri = 'http://localhost:3000/callback'; 
 
 export default function Index() {

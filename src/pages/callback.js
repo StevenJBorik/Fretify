@@ -1,7 +1,7 @@
 import React from 'react';
+import Router from 'next/router';
 
 const Callback = ({ code, error }) => {
-  const [tokenData, setTokenData] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   
   const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
@@ -24,7 +24,7 @@ const Callback = ({ code, error }) => {
             'Authorization': `Basic ${btoa(`${client_id}:${client_secret}`)}`
           },
           body: new URLSearchParams({
-            'grant_type': 'client_credentials',
+            'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirect_uri,
             'client_id': client_id,
@@ -33,12 +33,16 @@ const Callback = ({ code, error }) => {
         });
 
         const tokenData = await response.json();
+        console.log(tokenData);
 
-        setTokenData(tokenData);
-        setIsLoading(false);
+        // Redirect to dashboard.js
+        Router.push({
+          pathname: '/dashboard',
+          query: { tokenData: JSON.stringify(tokenData) } 
+        });
+
       } catch (error) {
         console.error('Error getting token data:', error.message);
-        setIsLoading(false);
       }
     };
 
@@ -58,12 +62,7 @@ const Callback = ({ code, error }) => {
     return <p>Loading...</p>;
   }
 
-  return (
-    <div>
-      <h1>Token Data</h1>
-      <pre>{JSON.stringify(tokenData, null, 2)}</pre>
-    </div>
-  );
+  return null;
 };
 
 Callback.getInitialProps = async ({ query }) => {

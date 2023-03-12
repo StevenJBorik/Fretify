@@ -1,5 +1,5 @@
 {
-    "grant_type": "client_credentials",
+    "grant_type": "authorization_code",
     "code": "AQD3zVL82b0SlI4KNcgqV_Q5ejEMEOITuBFjwRx3AmvPho0sbG2C8gFQeZ3Ni8Hhgw60S9EHwjMP0jAPyNbOnD5EyylGoEmHTOV3wDfVo6hrD_CxaWTDTulE",
     "redirect_uri": "http://localhost:3000/callback",
     "client_id": "6df6b59cb94b4bfbb76803a2092a11ee",

@@ -1,6 +1,9 @@
 import React from 'react';
+import { useRouter } from "next/router"
 
-const Dashboard = ({ tokenData }) => {
+const Dashboard = () => {
+  const router = useRouter(); 
+  const { tokenData } = router.query; 
   const [songQuery, setSongQuery] = React.useState('');
   const [playlistQuery, setPlaylistQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState([]);
@@ -9,10 +12,10 @@ const Dashboard = ({ tokenData }) => {
   const [currentPlaylist, setCurrentPlaylist] = React.useState(null);
   const [currentPlaylistTracks, setCurrentPlaylistTracks] = React.useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = React.useState(0);
-  const parsedTokenData = JSON.parse(tokenData);
+//   const tokenData = JSON.parse(this.props.router.query.data);
 
   const handleSearch = async (e) => {
-    console.log(parsedTokenData); 
+    
     e.preventDefault();
     try {
       const response = await fetch(`https://api.spotify.com/v1/search?q=${songQuery}&type=track`, {
@@ -22,6 +25,7 @@ const Dashboard = ({ tokenData }) => {
       });
 
       const data = await response.json();
+      console.log(data); 
       setSearchResults(data.tracks.items);
     } catch (error) {
       console.error('Error searching for tracks:', error.message);
@@ -135,53 +139,53 @@ const Dashboard = ({ tokenData }) => {
             <button type="submit">Search</button>
           </form>
           {searchResults.length > 0 && (
-        <div>
-        <h2>Song Results:</h2>
-        <ul>
-            {searchResults.map((track) => (
-            <li key={track.id}>
-                {track.name} - {track.artists[0].name}{' '}
-                <button onClick={() => handlePlayTrack(track)}>Play</button>
-            </li>
-            ))}
-        </ul>
-        </div>
-    )}
+            <div>
+            <h2>Song Results:</h2>
+            <ul>
+                {searchResults.map((track) => (
+                <li key={track.id}>
+                    {track.name} - {track.artists[0].name}{' '}
+                    <button onClick={() => handlePlayTrack(track)}>Play</button>
+                </li>
+                ))}
+            </ul>
+            </div>
+          )}
 
-    <form onSubmit={handleSearchPlaylist}>
-        <label>
-        Search for a playlist:
-        <input type="text" value={playlistQuery} onChange={(e) => setPlaylistQuery(e.target.value)} />
-        </label>
-        <button type="submit">Search</button>
-    </form>
+          <form onSubmit={handleSearchPlaylist}>
+                <label>
+                Search for a playlist:
+                <input type="text" value={playlistQuery} onChange={(e) => setPlaylistQuery(e.target.value)} />
+                </label>
+                <button type="submit">Search</button>
+            </form>
 
-    {searchResults.length > 0 && (
-        <div>
-        <h2>Playlist Results:</h2>
-        <ul>
-            {searchResults.map((playlist) => (
-            <li key={playlist.id}>
-                {playlist.name} - {playlist.owner.display_name}{' '}
-                <button onClick={() => handlePlayPlaylist(playlist)}>Play</button>
-            </li>
-            ))}
-        </ul>
-        </div>
-    )}
+            {searchResults.length > 0 && (
+                <div>
+                <h2>Playlist Results:</h2>
+                <ul>
+                    {searchResults.map((playlist) => (
+                    <li key={playlist.id}>
+                        {playlist.name} - {playlist.owner.display_name}{' '}
+                        <button onClick={() => handlePlayPlaylist(playlist)}>Play</button>
+                    </li>
+                    ))}
+                </ul>
+                </div>
+            )}
 
-    {currentPlaylist && (
-        <div>
-        <h2>Now Playing:</h2>
-        <p>{currentTrack.name} - {currentTrack.artists[0].name}</p>
-        <button onClick={handleSkipTrack}>Skip</button>
-        {isPlaying ? (
-            <button onClick={handlePauseTrack}>Pause</button>
-        ) : (
-            <button onClick={() => handlePlayTrack(currentTrack)}>Play</button>
+        {currentPlaylist && (
+            <div>
+            <h2>Now Playing:</h2>
+            <p>{currentTrack.name} - {currentTrack.artists[0].name}</p>
+            <button onClick={handleSkipTrack}>Skip</button>
+            {isPlaying ? (
+                <button onClick={handlePauseTrack}>Pause</button>
+            ) : (
+                <button onClick={() => handlePlayTrack(currentTrack)}>Play</button>
+            )}
+            </div>
         )}
-        </div>
-    )}
     </div>
   );
 };

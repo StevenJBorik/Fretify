@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 // import fetch from 'node-fetch';
 
-const RefreshToken = () => {
+const RefreshToken = (refresh_token) => {
   const [accessToken, setAccessToken] = useState('');
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const RefreshToken = () => {
       .then(response => response.json())
       .then(data => setAccessToken(data.access_token))
       .catch(error => console.error(error));
-  }, []);
+  }, [refresh_token]);
 
   return (
     <div>

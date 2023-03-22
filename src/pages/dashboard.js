@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from "next/router"
+import { getAccessToken } from './callback';
 
 const Dashboard = () => {
   const router = useRouter(); 
@@ -12,7 +13,7 @@ const Dashboard = () => {
   const [currentPlaylist, setCurrentPlaylist] = React.useState(null);
   const [currentPlaylistTracks, setCurrentPlaylistTracks] = React.useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = React.useState(0);
-  const tokenData = JSON.parse(router.query.data);
+  const [tokenData, setTokenData] = React.useState(JSON.parse(router.query.data));
 
 
   const handleSearch = async (e) => {
@@ -32,26 +33,47 @@ const Dashboard = () => {
       console.error('Error searching for tracks:', error.message);
     }
   };
-
   const handlePlayTrack = async (track) => {
     try {
-      const accessToken = await getAccessToken();
-      const response = await fetch(`https://api.spotify.com/v1/me/player/play`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-          uris: [track.uri]
-        })
+      const { access_token, refresh_token } = tokenData;
+      const deviceId = await getDeviceId(access_token);
+  
+      const player = new Spotify.Player({
+        name: 'Web Playback SDK Quick Start Player',
+        getOAuthToken: cb => { cb(access_token); }
       });
   
-      if (response.ok) {
-        setIsPlaying(true);
-        setCurrentTrack(track);
-      } else {
-        console.error('Error playing track:', response.status);
-      }
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uris: [track.uri]
+          })
+        }).then(response => {
+          if (response.ok) {
+            setIsPlaying(true);
+            setCurrentTrack(track);
+  
+            // Check if the track is in the current playlist
+            if (
+              currentPlaylist &&
+              currentPlaylistTracks.some((t) => t.track.uri === track.uri)
+            ) {
+              const index = currentPlaylistTracks.findIndex((t) => t.track.uri === track.uri);
+              setCurrentTrackIndex(index);
+            }
+          } else {
+            console.error('Error playing track:', response.status);
+          }
+        });
+      });
+  
+      player.connect();
     } catch (error) {
       console.error('Error playing track:', error.message);
     }
@@ -59,20 +81,26 @@ const Dashboard = () => {
   
   const handlePauseTrack = async () => {
     try {
-      const response = await fetch(`https://api.spotify.com/v1/me/player/pause`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`
-        }
+      const { access_token, refresh_token } = tokenData;
+      const deviceId = await getDeviceId(access_token);
+
+      const player = new Spotify.Player({
+        name: 'Web Playback SDK Quick Start Player',
+        getOAuthToken: cb => { cb(access_token); }
       });
 
-      if (response.ok) {
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        player.togglePlay();
         setIsPlaying(false);
-      }
+      });
+
+      player.connect();
     } catch (error) {
       console.error('Error pausing track:', error.message);
     }
   };
+  
 
   const handleSearchPlaylist = async (e) => {
     e.preventDefault();
@@ -92,47 +120,50 @@ const Dashboard = () => {
 
   const handlePlayPlaylist = async (playlist) => {
     try {
-      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`
-        }
+      // Initialize the Spotify SDK
+      const { Player } = window.Spotify;
+      const player = new Player({
+        name: 'My Spotify Player',
+        getOAuthToken: async (callback) => {
+          const tokenData = await getAccessToken(); // Assuming this function exists to get the token data
+          callback(tokenData.access_token);
+        },
       });
-
-      const data = await response.json();
+  
+      // Connect to the player and play the playlist
+      await player.connect();
+      await player.pause();
+      await player.clearQueue();
+      await player.play({
+        context_uri: `spotify:playlist:${playlist.id}`,
+      });
+  
+      // Update the current playlist and tracks
       setCurrentPlaylist(playlist);
-      setCurrentPlaylistTracks(data.items);
-      setCurrentTrack(data.items[0].track);
+      setCurrentPlaylistTracks([]);
+      setCurrentTrack(null);
       setCurrentTrackIndex(0);
       setIsPlaying(true);
     } catch (error) {
       console.error('Error playing playlist:', error.message);
     }
   };
-
+  
   const handleSkipTrack = async () => {
     if (currentTrackIndex + 1 >= currentPlaylistTracks.length) {
       return;
     }
-
+  
     try {
-      const response = await fetch(`https://api.spotify.com/v1/me/player/next`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`
-        }
-      });
-
-      if (response.ok) {
-        const nextTrackIndex =currentTrackIndex + 1;
-        setCurrentTrack(currentPlaylistTracks[nextTrackIndex].track);
-        setCurrentTrackIndex(nextTrackIndex);
-        }
-        } 
-        catch (error) {
-            console.error('Error skipping track:', error.message);
-        }
+      await player.nextTrack();
+      const nextTrackIndex = currentTrackIndex + 1;
+      setCurrentTrack(currentPlaylistTracks[nextTrackIndex].track);
+      setCurrentTrackIndex(nextTrackIndex);
+    } catch (error) {
+      console.error('Error skipping track:', error.message);
+    }
   };
-        
+  
   return (
         <div>
           <form onSubmit={handleSearch}>

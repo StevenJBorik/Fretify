@@ -13,7 +13,7 @@ const Callback = ({ code, error }) => {
   const router = useRouter();
 
   // Define function to get new access token using refresh token
-  const getAccessToken = async (refreshToken) => {
+ const getAccessToken = async (refreshToken) => {
     try {
       const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
@@ -80,6 +80,8 @@ const Callback = ({ code, error }) => {
           ...initialTokenData,
           expires_at: expiresAt
         }));
+
+        console.log(JSON.stringify(initialTokenData));
         
         // Redirect to dashboard.js
         router.push({
@@ -94,6 +96,7 @@ const Callback = ({ code, error }) => {
 
     // Check if token data exists in localStorage and is not expired
     const storedTokenData = JSON.parse(localStorage.getItem('spotify_token_data'));
+    console.log(storedTokenData);
     if (storedTokenData && storedTokenData.expires_at > Date.now()) {
       setTokenData(storedTokenData);
       router.push({

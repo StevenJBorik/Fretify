@@ -1,6 +1,9 @@
 import React from 'react';
 import { useRouter } from "next/router"
-import { getAccessToken } from './callback';
+import { getAccessToken } from './api';
+
+const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
+const client_secret = 'd4e56a8f3ba0415788089db89d49b931';
 
 const Dashboard = () => {
   const router = useRouter(); 
@@ -13,26 +16,92 @@ const Dashboard = () => {
   const [currentPlaylist, setCurrentPlaylist] = React.useState(null);
   const [currentPlaylistTracks, setCurrentPlaylistTracks] = React.useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = React.useState(0);
-  const [tokenData, setTokenData] = React.useState(JSON.parse(router.query.data));
+  const [tokenData, setTokenData] = React.useState(router.query.data ? JSON.parse(router.query.data) : null);
+  const [deviceId, setDeviceId] = React.useState(null);
 
-
-  const handleSearch = async (e) => {
-    
-    e.preventDefault();
+  const getAccessToken = async (code, redirect_uri) => {
     try {
-      const response = await fetch(`https://api.spotify.com/v1/search?q=${songQuery}&type=track`, {
+      console.log(code);
+      console.log(redirect_uri);
+      const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${btoa(`${client_id}:${client_secret}`)}`
+        },
+        body: new URLSearchParams({
+          'grant_type': 'authorization_code',
+          'code': code,
+          'redirect_uri': redirect_uri
+        })
+      });
+  
+      const tokenData = await response.json();
+      const expiresAt = Date.now() + (tokenData.expires_in * 1000);
+  
+      return {
+        ...tokenData,
+        expires_at: expiresAt
+      };
+  
+    } catch (error) {
+      console.error('Error getting token data:', error.message);
+      return null;
+    }
+  };
+
+  const getDeviceId = async (accessToken) => {
+    try {
+      // Get user's available devices
+      const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
         }
       });
-
       const data = await response.json();
-      console.log(data); 
-      setSearchResults(data.tracks.items);
+  
+      // Find the first active device
+      const device = data.devices.find(device => device.is_active);
+  
+      // Return the device ID
+      return device.id;
+    } catch (error) {
+      console.error('Error getting device ID:', error.message);
+    }
+  };
+  
+  React.useEffect(() => {
+    const fetchDeviceId = async () => {
+      try {
+        const accessToken = await getAccessToken(tokenData.refresh_token);
+        const deviceId = await getDeviceId(accessToken);
+        setDeviceId(deviceId);
+      } catch (error) {
+        console.error('Error getting device ID:', error.message);
+      }
+    };
+    fetchDeviceId();
+  }, [tokenData]);
+
+  const handleSearch = async () => {
+    try {
+      const accessToken = tokenData.access_token;
+  
+      const response = await fetch(`https://api.spotify.com/v1/search?q=${searchQuery}&type=track`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+  
+      const data = await response.json();
+      console.log('Search results:', data);
     } catch (error) {
       console.error('Error searching for tracks:', error.message);
     }
   };
+  
   const handlePlayTrack = async (track) => {
     try {
       const { access_token, refresh_token } = tokenData;

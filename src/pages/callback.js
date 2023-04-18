@@ -45,11 +45,9 @@ const Callback = ({ code, error }) => {
   };
 
   React.useEffect(() => {
-    const getTokenData = async () => {
-      if (error) {
-        return;
-      }
-
+    const storedTokenData = JSON.parse(localStorage.getItem('spotify_token_data'));
+  
+    const fetchTokenData = async () => {
       try {
         setIsLoading(true);
         
@@ -63,14 +61,14 @@ const Callback = ({ code, error }) => {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirect_uri,
-            'client_id': client_id,
-            'client_secret': client_secret
-          })
+          }).toString(),
         });
-
+        console.log(code); 
+        console.log(response);
+  
         const initialTokenData = await response.json();
         const expiresAt = Date.now() + (initialTokenData.expires_in * 1000);
-
+  
         // Store token data in state and localStorage
         setTokenData({
           ...initialTokenData,
@@ -80,33 +78,64 @@ const Callback = ({ code, error }) => {
           ...initialTokenData,
           expires_at: expiresAt
         }));
-
+  
         console.log(JSON.stringify(initialTokenData));
         
-        // Redirect to dashboard.js
-        router.push({
-          pathname: '/dashboard',
-          query: { data: JSON.stringify(initialTokenData) },
-        });
-
+        if (!error) {
+          // Redirect to dashboard.js
+          router.push({
+            pathname: '/dashboard',
+            query: { data: JSON.stringify(tokenData) },
+          });
+        }
+  
       } catch (error) {
         console.error('Error getting token data:', error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
-
-    // Check if token data exists in localStorage and is not expired
-    const storedTokenData = JSON.parse(localStorage.getItem('spotify_token_data'));
-    console.log(storedTokenData);
+  
+    const refreshTokenData = async () => {
+      try {
+        setIsLoading(true);
+        
+        const storedTokenData = JSON.parse(localStorage.getItem('spotify_token_data'));
+        const newTokenData = await getAccessToken(storedTokenData.refresh_token);
+    
+        const expiresAt = Date.now() + (newTokenData.expires_in * 1000);
+    
+        // Store new token data in state and localStorage
+        setTokenData({
+          ...newTokenData,
+          expires_at: expiresAt
+        });
+        localStorage.setItem('spotify_token_data', JSON.stringify({
+          ...newTokenData,
+          expires_at: expiresAt
+        }));
+      } catch (error) {
+        console.error('Error refreshing access token:', error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     if (storedTokenData && storedTokenData.expires_at > Date.now()) {
       setTokenData(storedTokenData);
-      router.push({
-        pathname: '/dashboard',
-        query: { data: JSON.stringify(storedTokenData) },
-      });
+      if (!error) {
+        router.push({
+          pathname: '/dashboard',
+          query: { data: JSON.stringify(storedTokenData) },
+        });
+      }
+    } else if (storedTokenData && storedTokenData.refresh_token) {
+      refreshTokenData();
     } else {
-      getTokenData();
+      fetchTokenData();
     }
-  }, [code, error, client_id, client_secret, redirect_uri,]); 
+  }, [code, error, client_id, client_secret, redirect_uri]);
+  
 
   if (error) {
     return (

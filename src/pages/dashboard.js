@@ -4,6 +4,8 @@ import { getAccessToken } from './api';
 
 const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
 const client_secret = 'd4e56a8f3ba0415788089db89d49b931';
+const redirect_uri = 'http://localhost:3000/callback'
+
 
 const Dashboard = () => {
   const router = useRouter(); 

@@ -6,6 +6,8 @@ const client_id = '6df6b59cb94b4bfbb76803a2092a11ee';
 const redirect_uri = 'http://localhost:3000/callback'; 
 const refresh_token = 'AQAMLNKGjztrdyFuUYc53NJpUOHln8Iv0cPxx0hXxvO_5Nle2xjAm3yi0_9acYKUqqiUQugXT0agFxs6k9yObkZYSEH37S4gnSGSB5Bxm0IBitOsy15EW459REiGUI1dcgU';
 
+
+
 export default function Index() {
   const [refreshToken, setRefreshToken] = React.useState('');
   const router = useRouter();
@@ -20,10 +22,6 @@ export default function Index() {
     });
     router.push(`https://accounts.spotify.com/authorize?${query}`);
   };
-
-  // const handleRefreshToken = () => {
-  //   RefreshToken(refresh_token);
-  // };
 
   const handleRefreshToken = () => {
     setRefreshToken(refresh_token);
